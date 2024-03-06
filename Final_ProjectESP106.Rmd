@@ -1,0 +1,53 @@
+---
+title: "Project ESP 106"
+output: html_document
+date: "2024-03-06"
+author: Patrick Farrell
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+Loadin packages and data for analysis across vineyards
+```{r}
+library(ggstats)
+library(tidyverse)
+library(dplyr)
+library(ggplot2)
+
+PASO_SOIL_df<- read.csv("/Users/patrickfarrell/Desktop/PasoRobles_SHdata.csv")
+
+
+#Make categorical data as factors
+PASO_SOIL_df<- PASO_SOIL_df %>% mutate_at(1:7, as.factor)
+
+#Summarize data 
+PASO_SOIL_dfsum <- PASO_SOIL_df %>% group_by(Grower, Grower.Rating, Location, Depth) %>% summarize_at(vars(EC:TN), list(mean=mean, sd=sd, max=max, min=min, median=median),na.rm = TRUE)
+
+
+
+# first row is NA so delete
+PASO_SOIL_dfsum <-PASO_SOIL_dfsum[-1,]
+
+# for loop for making a individual data set for each soil health factor
+## Make data frame alphabetical to make for loop easier (except fo the first 4 rows)
+
+first_four_rows <- df[1:4, ]
+
+rest_of_rows <- df[-(1:4), ]
+
+
+rest_of_rows_sorted <- rest_of_rows[, order(names(rest_of_rows))]
+
+
+result <- rbind(first_four_rows, rest_of_rows_sorted)
+
+
+sorted_PASO_SOIL_dfsum <- PASO_SOIL_dfsum[, order(names(PASO_SOIL_dfsum))]
+EC_sum_df <- PASO_SOIL_dfsum[,c(1,2,3,4,5)]
+
+
+
+```
