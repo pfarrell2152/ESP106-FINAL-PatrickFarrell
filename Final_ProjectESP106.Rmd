@@ -10,7 +10,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ## R Markdown
-Loadin packages and data for analysis across vineyards
+Loading packages and data for analysis across vineyards
 ```{r}
 library(ggstats)
 library(tidyverse)
@@ -34,20 +34,284 @@ PASO_SOIL_dfsum <-PASO_SOIL_dfsum[-1,]
 # for loop for making a individual data set for each soil health factor
 ## Make data frame alphabetical to make for loop easier (except fo the first 4 rows)
 
-first_four_rows <- df[1:4, ]
+first_four_column <- PASO_SOIL_dfsum[,1:4 ]
 
-rest_of_rows <- df[-(1:4), ]
+rest_of_col <- PASO_SOIL_dfsum[,-(1:4) ]
+
+rest_of_col_sorted <- rest_of_col[, order(names(rest_of_col))]
+
+PASO_dfsum_sorted <- cbind(first_four_column,rest_of_col_sorted) 
+
+## for loop for creating a data frame for each soil measurement
+
+# Define the column ranges for each data frame
+
+BD_sum_df <- PASO_dfsum_sorted[,c(1,2,3,4,5:9)]
+
+clay_sum_df <- PASO_dfsum_sorted[,c(1,2,3,4,10:14)]
+
+EC_sum_df <- PASO_dfsum_sorted[,c(1,2,3,4,15:19)]
+
+MBC_sum_df <- PASO_dfsum_sorted[,c(1,2,3,4,20:24)]
+
+NH4_sum_df <- PASO_dfsum_sorted[,c(1,2,3,4,25:29)]
+
+NO3_sum_df <- PASO_dfsum_sorted[,c(1,2,3,4,30:34)]
+
+pH_sum_df <- PASO_dfsum_sorted[,c(1,2,3,4,35:39)]
+
+PMN_sum_df <- PASO_dfsum_sorted[,c(1,2,3,4,40:44)]
+
+POXC_sum_df <- PASO_dfsum_sorted[,c(1,2,3,4,45:49)]
+
+Sand_sum_df <- PASO_dfsum_sorted[,c(1,2,3,4,50:54)]
+
+silt_sum_df <- PASO_dfsum_sorted[,c(1,2,3,4,55:59)]
+
+Soil_Moisture_sum_df <- PASO_dfsum_sorted[,c(1,2,3,4,60:64)]
+
+TC_sum_df <- PASO_dfsum_sorted[,c(1,2,3,4,65:69)]
+
+TN_sum_df <- PASO_dfsum_sorted[,c(1,2,3,4,70:74)]
+
+```
+
+Now I will repeat these steps for Lodi and Napa data sets.
+
+```{r}
+NAPA_SOIL_df<- read.csv("/Users/patrickfarrell/Documents/School/ESP 106/ESP106-FINAL-PatrickFarrell/Napa_SHData.csv")
 
 
-rest_of_rows_sorted <- rest_of_rows[, order(names(rest_of_rows))]
+#Make categorical data as factors
+NAPA_SOIL_df<- NAPA_SOIL_df %>% mutate_at(1:7, as.factor)
 
-
-result <- rbind(first_four_rows, rest_of_rows_sorted)
-
-
-sorted_PASO_SOIL_dfsum <- PASO_SOIL_dfsum[, order(names(PASO_SOIL_dfsum))]
-EC_sum_df <- PASO_SOIL_dfsum[,c(1,2,3,4,5)]
+#Summarize data 
+NAPA_SOIL_df_sum <- NAPA_SOIL_df %>% group_by(Grower, Grower.Rating, Location, Depth) %>% summarize_at(vars(EC:TN), list(mean=mean, sd=sd, max=max, min=min, median=median),na.rm = TRUE)
 
 
 
+# for loop for making a individual data set for each soil health factor
+## Make data frame alphabetical to make for loop easier (except fo the first 4 rows)
+
+first_four_column_NAPA <- NAPA_SOIL_df_sum[,1:4 ]
+
+rest_of_col_NAPA <- NAPA_SOIL_df_sum[,-(1:4) ]
+
+rest_of_col_sorted_NAPA <- rest_of_col_NAPA[, order(names(rest_of_col_NAPA))]
+
+NAPA_SOIL_df_sorted <- cbind(first_four_column_NAPA,rest_of_col_sorted_NAPA) 
+
+## for loop for creating a data frame for each soil measurement
+
+# Define the column ranges for each data frame
+
+NAPA_BD_sum_df <- NAPA_SOIL_df_sorted[,c(1,2,3,4,5:9)]
+
+NAPA_clay_sum_df <- NAPA_SOIL_df_sorted[,c(1,2,3,4,10:14)]
+
+NAPA_EC_sum_df <- NAPA_SOIL_df_sorted[,c(1,2,3,4,15:19)]
+
+NAPA_MBC_sum_df <- NAPA_SOIL_df_sorted[,c(1,2,3,4,20:24)]
+
+NAPA_NH4_sum_df <- NAPA_SOIL_df_sorted[,c(1,2,3,4,25:29)]
+
+NAPA_NO3_sum_df <- NAPA_SOIL_df_sorted[,c(1,2,3,4,30:34)]
+
+NAPA_pH_sum_df <-NAPA_SOIL_df_sorted[,c(1,2,3,4,35:39)]
+
+NAPA_PMN_sum_df <- NAPA_SOIL_df_sorted[,c(1,2,3,4,40:44)]
+
+NAPA_POXC_sum_df <- NAPA_SOIL_df_sorted[,c(1,2,3,4,45:49)]
+
+NAPA_Sand_sum_df <- NAPA_SOIL_df_sorted[,c(1,2,3,4,50:54)]
+
+NAPA_silt_sum_df <- NAPA_SOIL_df_sorted[,c(1,2,3,4,55:59)]
+
+NAPA_Soil_Moisture_sum_df <- NAPA_SOIL_df_sorted[,c(1,2,3,4,60:64)]
+
+NAPA_TC_sum_df <- NAPA_SOIL_df_sorted[,c(1,2,3,4,65:69)]
+
+NAPA_TN_sum_df <- NAPA_SOIL_df_sorted[,c(1,2,3,4,70:74)]
+
+
+```
+LODI
+```{r}
+LODI_SOIL_df<- read.csv("/Users/patrickfarrell/Documents/School/ESP 106/ESP106-FINAL-PatrickFarrell/Lodi_AVF_SHdata.csv")
+
+
+#Make categorical data as factors
+LODI_SOIL_df<- LODI_SOIL_df %>% mutate_at(1:5, as.factor)
+
+#Summarize data 
+LODI_SOIL_df_sum <- LODI_SOIL_df %>% group_by(Grower, Grower.Rating, Location, Depth) %>% summarize_at(vars(EC:PMN), list(mean=mean, sd=sd, max=max, min=min, median=median),na.rm = TRUE)
+
+
+## Make data frame alphabetical to make for loop easier (except fo the first 4 rows)
+
+first_four_column_LODI <- LODI_SOIL_df_sum[,1:4 ]
+
+rest_of_col_LODI <- LODI_SOIL_df_sum[,-(1:4) ]
+
+rest_of_col_sorted_LODI <- rest_of_col_LODI[, order(names(rest_of_col_LODI))]
+
+LODI_SOIL_df_sorted <- cbind(first_four_column_LODI,rest_of_col_sorted_LODI) 
+
+###
+
+LODI_BD_sum_df <- LODI_SOIL_df_sorted[,c(1,2,3,4,5:9)]
+
+LODI_EC_sum_df <- LODI_SOIL_df_sorted[,c(1,2,3,4,10:14)]
+
+LODI_MBC_sum_df <- LODI_SOIL_df_sorted[,c(1,2,3,4,15:19)]
+
+LODI_NH4_sum_df <- LODI_SOIL_df_sorted[,c(1,2,3,4,20:24)]
+
+LODI_pH_sum_df <- LODI_SOIL_df_sorted[,c(1,2,3,4,25:29)]
+
+LODI_PMN_sum_df <- LODI_SOIL_df_sorted[,c(1,2,3,4,30:34)]
+
+LODI_POXC_sum_df <-LODI_SOIL_df_sorted[,c(1,2,3,4,35:39)]
+
+LODI_Respiration_sum_df <- LODI_SOIL_df_sorted[,c(1,2,3,4,40:44)]
+
+LODI_SOIL_moisture_sum_df <- LODI_SOIL_df_sorted[,c(1,2,3,4,45:49)]
+
+
+### missing data so not as many sub data frames as other regoins
+```
+This code will make a plot for comparing pH of every grower in the regions . A similar plot could be made for every soil health measurement to compare which soil has the most favorable soil health factors.
+```{r}
+
+pH_Grower_plot_PASO<- ggplot(pH_sum_df,aes(y=pH_mean, x=Grower, fill=Depth)) + geom_boxplot(outlier.shape=NA) +theme_bw() + scale_fill_manual(values=cbPalette) + 
+  theme(axis.text.x=element_text (hjust=0.5, angle = 45, size = 12), axis.title.x = element_text(size=10), axis.title.y = element_text(size=14), plot.title = element_text(size=18), strip.text.x = element_text(size = 12),strip.text.y = element_text(size = 12), axis.text.y.left =element_text( size = 12), legend.text=element_text(size=12), legend.title=element_text(size=12)) + 
+  ylab(expression(paste('pH' ))) 
+
+pH_Grower_plot_PASO
+```
+
+```{r}
+
+pH_Grower_plot_NAPA<- ggplot(NAPA_pH_sum_df,aes(y=pH_mean, x=Grower, fill=Depth)) + geom_boxplot(outlier.shape=NA) +theme_bw() + scale_fill_manual(values=cbPalette) + 
+  theme(axis.text.x=element_text (hjust=0.5, angle = 45, size = 12), axis.title.x = element_text(size=10), axis.title.y = element_text(size=14), plot.title = element_text(size=18), strip.text.x = element_text(size = 12),strip.text.y = element_text(size = 12), axis.text.y.left =element_text( size = 12), legend.text=element_text(size=12), legend.title=element_text(size=12)) + 
+  ylab(expression(paste('pH' ))) 
+
+pH_Grower_plot_NAPA
+
+```
+
+```{r}
+
+```
+
+
+```{r}
+pH_Grower_plot_LODI<- ggplot(LODI_pH_sum_df,aes(y=pH_mean, x=Grower, fill=Depth)) + geom_boxplot(outlier.shape=NA) +theme_bw() + scale_fill_manual(values=cbPalette) + 
+  theme(axis.text.x=element_text (hjust=0.5, angle = 45, size = 12), axis.title.x = element_text(size=10), axis.title.y = element_text(size=14), plot.title = element_text(size=18), strip.text.x = element_text(size = 12),strip.text.y = element_text(size = 12), axis.text.y.left =element_text( size = 12), legend.text=element_text(size=12), legend.title=element_text(size=12)) + 
+  ylab(expression(paste('pH' ))) 
+
+pH_Grower_plot_LODI
+
+
+```
+
+## Although I am not working wit all of the data frames in this project I wrote a for loop that is able to make this plot for all soil measuremetns in a growing region. To complete it i could ad a list for each measurement along with the desired name and y-axis label.
+
+```{r}
+# List of data frames and corresponding plot names
+Grower_comparison<- list(
+  list(df = LODI_pH_sum_df, plot_name = "pH_Grower_plot_LODI", y_label = "pH"),
+  list(df = pH_sum_df, plot_name = "pH_Grower_plot_PASO", y_label = "pH"),
+  list(df = NAPA_pH_sum_df, plot_name = "pH_Grower_plot_NAPA", y_label = "pH")
+)
+
+
+for (item in Grower_comparison) {
+  plot <- ggplot(item$df, aes(y = !!sym(paste0(item$y_label, "_mean")), x = Grower, fill = Depth)) +
+    geom_boxplot(outlier.shape = NA) +
+    theme_bw() +
+    scale_fill_manual(values = cbPalette) + 
+    theme(axis.text.x = element_text(hjust = 0.5, angle = 45, size = 12),
+      axis.title.x = element_text(size = 10),
+      axis.title.y = element_text(size = 10),
+      plot.title = element_text(size = 18),
+      strip.text.x = element_text(size = 12),
+      strip.text.y = element_text(size = 12),
+      axis.text.y.left = element_text(size = 12),
+      legend.text = element_text(size = 12),
+      legend.title = element_text(size = 12))+
+    ylab("pH")+ ggtitle(item$plot_name)
+
+ 
+  assign(item$plot_name, plot)
+}
+
+# Display the plots
+print(pH_Grower_plot_LODI)
+
+print(pH_Grower_plot_PASO)
+
+print(pH_Grower_plot_NAPA)
+
+
+```
+
+
+
+Now we to compare soil factors across depths and across reps for each vineyard I will create a box plots for each vineyard. 
+
+```{r}
+#the following code set a colorblind friendly color palette for the figures
+
+cbPalette <- c("#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
+
+
+create_EC_plot <- function(data, ideal_values, challenging_values) {
+  ggplot(data, aes(y = EC_mean, x = Grower, fill = Depth)) + 
+    geom_boxplot(outlier.shape = NA) +
+    theme_bw() + 
+    scale_fill_manual(values = cbPalette) +
+    theme(
+      axis.text.x = element_text(hjust = 0.5, size = 12),
+      axis.title.x = element_text(size = 14),
+      axis.title.y = element_text(size = 14),
+      plot.title = element_text(size = 18),
+      strip.text.x = element_text(size = 12),
+      strip.text.y = element_text(size = 12),
+      axis.text.y.left = element_text(size = 12),
+      legend.text = element_text(size = 12),
+      legend.title = element_text(size = 12)
+    ) +
+    ylab(expression(paste('EC (uS/cm)'))) + 
+    geom_jitter(
+      aes(color = as.factor(ideal_challenging)), 
+      size = 3,
+      position = position_jitterdodge()
+    ) +
+    scale_color_manual(values = c("green", "red", "black")) +
+    guides(color = FALSE)
+}
+
+# Convert EC_sum_df to a data frame
+EC_sum_df <- as.data.frame(EC_sum_df)
+
+
+# Create and save plots for each grower
+unique_growers <- unique(EC_sum_df$Grower)
+for (grower in unique_growers) {
+  data <- subset(EC_sum_df, Grower == grower)
+  plot <- create_EC_plot(data, ideal_values[[grower]], challenging_values[[grower]])
+  ggsave(paste0(grower, "_ECplot.pdf"), plot, width = 6, height = 8)
+}
+
+plot
+```
+
+
+```{r}
+CIR_pHplot<- ggplot(pH_sum_df,aes(y=pH_mean, x=Location, fill=Depth)) + geom_boxplot(outlier.shape=NA) +theme_bw() + scale_fill_manual(values=cbPalette) + 
+  theme(axis.text.x=element_text (hjust=0.5, size = 12), axis.title.x = element_text(size=14), axis.title.y = element_text(size=14), plot.title = element_text(size=18), strip.text.x = element_text(size = 12),strip.text.y = element_text(size = 12), axis.text.y.left =element_text( size = 12), legend.text=element_text(size=12), legend.title=element_text(size=12)) + 
+  ylab(expression(paste('pH' ))) + geom_jitter(size=3, shape=16,position=position_jitterdodge(), color=ifelse(pH_sum_df$pH_mean==c(6.75, 6.443333, 7.13, 7.443333), "green", ifelse(pH_sum_df$pH_mean==c(6.98,7.02, 8.116666667, 8.53), "red", "black")))
+
+CIR_pHplot
 ```
