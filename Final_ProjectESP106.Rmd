@@ -17,8 +17,8 @@ library(tidyverse)
 library(dplyr)
 library(ggplot2)
 
-PASO_SOIL_df<- read.csv("/Users/patrickfarrell/Desktop/PasoRobles_SHdata.csv")
 
+PASO_SOIL_df<- read.csv("/Users/patrickfarrell/Documents/School/ESP 106/ESP106-FINAL-PatrickFarrell/PasoRobles_SHdata.csv")
 
 #Make categorical data as factors
 PASO_SOIL_df<- PASO_SOIL_df %>% mutate_at(1:7, as.factor)
@@ -26,7 +26,8 @@ PASO_SOIL_df<- PASO_SOIL_df %>% mutate_at(1:7, as.factor)
 #Summarize data 
 PASO_SOIL_dfsum <- PASO_SOIL_df %>% group_by(Grower, Grower.Rating, Location, Depth) %>% summarize_at(vars(EC:TN), list(mean=mean, sd=sd, max=max, min=min, median=median),na.rm = TRUE)
 
-
+#Colorblind palette
+cbPalette <- c("#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
 
 # first row is NA so delete
 PASO_SOIL_dfsum <-PASO_SOIL_dfsum[-1,]
@@ -188,7 +189,7 @@ pH_Grower_plot_PASO<- ggplot(pH_sum_df,aes(y=pH_mean, x=Grower, fill=Depth)) + g
   ylab(expression(paste('pH' ))) 
 
 pH_Grower_plot_PASO
-```
+
 
 ```{r}
 
@@ -197,13 +198,7 @@ pH_Grower_plot_NAPA<- ggplot(NAPA_pH_sum_df,aes(y=pH_mean, x=Grower, fill=Depth)
   ylab(expression(paste('pH' ))) 
 
 pH_Grower_plot_NAPA
-
 ```
-
-```{r}
-
-```
-
 
 ```{r}
 pH_Grower_plot_LODI<- ggplot(LODI_pH_sum_df,aes(y=pH_mean, x=Grower, fill=Depth)) + geom_boxplot(outlier.shape=NA) +theme_bw() + scale_fill_manual(values=cbPalette) + 
@@ -212,106 +207,110 @@ pH_Grower_plot_LODI<- ggplot(LODI_pH_sum_df,aes(y=pH_mean, x=Grower, fill=Depth)
 
 pH_Grower_plot_LODI
 
-
 ```
 
-## Although I am not working wit all of the data frames in this project I wrote a for loop that is able to make this plot for all soil measuremetns in a growing region. To complete it i could ad a list for each measurement along with the desired name and y-axis label.
+Now I would like avergae pH for the entire region. 
 
 ```{r}
-# List of data frames and corresponding plot names
-Grower_comparison<- list(
-  list(df = LODI_pH_sum_df, plot_name = "pH_Grower_plot_LODI", y_label = "pH"),
-  list(df = pH_sum_df, plot_name = "pH_Grower_plot_PASO", y_label = "pH"),
-  list(df = NAPA_pH_sum_df, plot_name = "pH_Grower_plot_NAPA", y_label = "pH")
-)
 
 
-for (item in Grower_comparison) {
-  plot <- ggplot(item$df, aes(y = !!sym(paste0(item$y_label, "_mean")), x = Grower, fill = Depth)) +
-    geom_boxplot(outlier.shape = NA) +
-    theme_bw() +
-    scale_fill_manual(values = cbPalette) + 
-    theme(axis.text.x = element_text(hjust = 0.5, angle = 45, size = 12),
-      axis.title.x = element_text(size = 10),
-      axis.title.y = element_text(size = 10),
-      plot.title = element_text(size = 18),
-      strip.text.x = element_text(size = 12),
-      strip.text.y = element_text(size = 12),
-      axis.text.y.left = element_text(size = 12),
-      legend.text = element_text(size = 12),
-      legend.title = element_text(size = 12))+
-    ylab("pH")+ ggtitle(item$plot_name)
+```
+##Raster Data
+First let read in data set of vineyard coordinates that I created. 
+```{r}
 
- 
-  assign(item$plot_name, plot)
-}
+Vineyards <- read.csv("/Users/patrickfarrell/Documents/School/ESP 106/ESP106-FINAL-PatrickFarrell/Vineyard Coordinates.csv")
 
-# Display the plots
-print(pH_Grower_plot_LODI)
+```
+For the second part of my project I am going to use raster data to see the the precipitation level in each region. Data dowloaded from worldclim.org
 
-print(pH_Grower_plot_PASO)
-
-print(pH_Grower_plot_NAPA)
+```{r}
+library(raster)
 
 
+monthly_files <- list.files("/Users/patrickfarrell/Documents/School/ESP 106/ESP106-FINAL-PatrickFarrell/wc2.1_10m_tavg", pattern = "\\.tif$", full.names = TRUE)
+monthly_rasters <- lapply(monthly_files, raster)
+
+
+stacked_raster <- stack(monthly_rasters)
+
+
+yearly_temp_raster <- calc(stacked_raster, mean)  
 ```
 
 
 
-Now we to compare soil factors across depths and across reps for each vineyard I will create a box plots for each vineyard. 
+```{r}
+extent(yearly_temp_raster)
+
+ca_boundary <- shapefile("/Users/patrickfarrell/Documents/School/ESP 106/ESP106-FINAL-PatrickFarrell/ca_state_boundary/ca_state_boundaries.shp")
+
+ytr<- crop(yearly_temp_raster,extent(ca_boundary))
+
+plot(ytr[[1]] , main="Mean Annual Temperature")
+plot(ca_boundary, add=TRUE, border="black",lwd=2)
+points(Vineyards$Longitude, Vineyards$Latitude, pch = 1, col = "blue", cex= .5)
+
+
+```
+
+We can see from this that Paso Robles and Napa have lower average temperature. 
+
+Now Precipitation
+```{r}
+monthly_precip <- list.files("/Users/patrickfarrell/Documents/School/ESP 106/ESP106-FINAL-PatrickFarrell/wc2.1_10m_prec", pattern = "\\.tif$", full.names = TRUE)
+
+monthly_precip_rasters <- lapply(monthly_precip, raster)
+
+
+stacked_precip <- stack(monthly_precip_rasters)
+
+
+yearly_precip_raster <- calc(stacked_precip, mean)
+
+ypr<- crop(yearly_precip_raster,extent(ca_boundary))
+
+plot(ypr[[1]], main= "Mean Average Precipitation")
+plot(ca_boundary, add=TRUE, border="black",lwd=2)
+points(Vineyards$Longitude, Vineyards$Latitude, pch = 1, col = "blue", cex= .5)
+
+```
+
+Hard to see differences so lets zoom in on each growing region. using shapefiels of wine growing avas from ttb.gov
 
 ```{r}
-#the following code set a colorblind friendly color palette for the figures
+napa_boundary<- shapefile("/Users/patrickfarrell/Documents/School/ESP 106/ESP106-FINAL-PatrickFarrell/napa_valley/napa_valley.shp")
 
-cbPalette <- c("#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
+ypr_napa<- crop(yearly_precip_raster,extent(napa_boundary))
 
-
-create_EC_plot <- function(data, ideal_values, challenging_values) {
-  ggplot(data, aes(y = EC_mean, x = Grower, fill = Depth)) + 
-    geom_boxplot(outlier.shape = NA) +
-    theme_bw() + 
-    scale_fill_manual(values = cbPalette) +
-    theme(
-      axis.text.x = element_text(hjust = 0.5, size = 12),
-      axis.title.x = element_text(size = 14),
-      axis.title.y = element_text(size = 14),
-      plot.title = element_text(size = 18),
-      strip.text.x = element_text(size = 12),
-      strip.text.y = element_text(size = 12),
-      axis.text.y.left = element_text(size = 12),
-      legend.text = element_text(size = 12),
-      legend.title = element_text(size = 12)
-    ) +
-    ylab(expression(paste('EC (uS/cm)'))) + 
-    geom_jitter(
-      aes(color = as.factor(ideal_challenging)), 
-      size = 3,
-      position = position_jitterdodge()
-    ) +
-    scale_color_manual(values = c("green", "red", "black")) +
-    guides(color = FALSE)
-}
-
-# Convert EC_sum_df to a data frame
-EC_sum_df <- as.data.frame(EC_sum_df)
+plot(ypr_napa[[1]], main= "Napa Valley Vineyard and Mean Average Precipitation")
+plot(napa_boundary, add=TRUE, border="black",lwd=2)
+points(Vineyards$Longitude, Vineyards$Latitude, pch = 1, col = "blue", cex= .5)
 
 
-# Create and save plots for each grower
-unique_growers <- unique(EC_sum_df$Grower)
-for (grower in unique_growers) {
-  data <- subset(EC_sum_df, Grower == grower)
-  plot <- create_EC_plot(data, ideal_values[[grower]], challenging_values[[grower]])
-  ggsave(paste0(grower, "_ECplot.pdf"), plot, width = 6, height = 8)
-}
-
-plot
 ```
 
 
 ```{r}
-CIR_pHplot<- ggplot(pH_sum_df,aes(y=pH_mean, x=Location, fill=Depth)) + geom_boxplot(outlier.shape=NA) +theme_bw() + scale_fill_manual(values=cbPalette) + 
-  theme(axis.text.x=element_text (hjust=0.5, size = 12), axis.title.x = element_text(size=14), axis.title.y = element_text(size=14), plot.title = element_text(size=18), strip.text.x = element_text(size = 12),strip.text.y = element_text(size = 12), axis.text.y.left =element_text( size = 12), legend.text=element_text(size=12), legend.title=element_text(size=12)) + 
-  ylab(expression(paste('pH' ))) + geom_jitter(size=3, shape=16,position=position_jitterdodge(), color=ifelse(pH_sum_df$pH_mean==c(6.75, 6.443333, 7.13, 7.443333), "green", ifelse(pH_sum_df$pH_mean==c(6.98,7.02, 8.116666667, 8.53), "red", "black")))
+lodi_boundary<- shapefile("/Users/patrickfarrell/Documents/School/ESP 106/ESP106-FINAL-PatrickFarrell/lodi/lodi.shp")
 
-CIR_pHplot
+ypr_lodi<- crop(yearly_precip_raster,extent(lodi_boundary))
+
+plot(ypr_lodi[[1]], main= "Lodi Vineyards and Mean Average Precipitation")
+plot(lodi_boundary, add=TRUE, border="black",lwd=2)
+points(Vineyards$Longitude, Vineyards$Latitude, pch = 1, col = "blue", cex= .5)
 ```
+
+```{r}
+paso_boundary<- shapefile("/Users/patrickfarrell/Documents/School/ESP 106/ESP106-FINAL-PatrickFarrell/paso_robles/paso_robles.shp")
+
+ypr_paso<- crop(yearly_precip_raster,extent(paso_boundary))
+
+plot(ypr_paso[[1]], main= "Paso Robles Vineyards and Mean Average Precipitation")
+plot(paso_boundary, add=TRUE, border="black",lwd=2)
+points(Vineyards$Longitude, Vineyards$Latitude, pch = 1, col = "blue", cex= .5)
+
+```
+
+
+There a re couple issues with these plots. The raster that I am using does not have enough cells to clearly differentiate precipitation within a region. However, we are able to se that Napa gets more precipitation on average than Paso Robles and Lodi. 
