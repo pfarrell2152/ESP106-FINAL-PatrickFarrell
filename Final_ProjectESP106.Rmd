@@ -16,6 +16,7 @@ library(ggstats)
 library(tidyverse)
 library(dplyr)
 library(ggplot2)
+library(raster)
 
 
 PASO_SOIL_df<- read.csv("/Users/patrickfarrell/Documents/School/ESP 106/ESP106-FINAL-PatrickFarrell/PasoRobles_SHdata.csv")
@@ -45,35 +46,10 @@ PASO_dfsum_sorted <- cbind(first_four_column,rest_of_col_sorted)
 
 ## for loop for creating a data frame for each soil measurement
 
-# Define the column ranges for each data frame
-
-BD_sum_df <- PASO_dfsum_sorted[,c(1,2,3,4,5:9)]
-
-clay_sum_df <- PASO_dfsum_sorted[,c(1,2,3,4,10:14)]
-
-EC_sum_df <- PASO_dfsum_sorted[,c(1,2,3,4,15:19)]
-
-MBC_sum_df <- PASO_dfsum_sorted[,c(1,2,3,4,20:24)]
-
-NH4_sum_df <- PASO_dfsum_sorted[,c(1,2,3,4,25:29)]
-
-NO3_sum_df <- PASO_dfsum_sorted[,c(1,2,3,4,30:34)]
+# Define the column ranges for the pH data
 
 pH_sum_df <- PASO_dfsum_sorted[,c(1,2,3,4,35:39)]
 
-PMN_sum_df <- PASO_dfsum_sorted[,c(1,2,3,4,40:44)]
-
-POXC_sum_df <- PASO_dfsum_sorted[,c(1,2,3,4,45:49)]
-
-Sand_sum_df <- PASO_dfsum_sorted[,c(1,2,3,4,50:54)]
-
-silt_sum_df <- PASO_dfsum_sorted[,c(1,2,3,4,55:59)]
-
-Soil_Moisture_sum_df <- PASO_dfsum_sorted[,c(1,2,3,4,60:64)]
-
-TC_sum_df <- PASO_dfsum_sorted[,c(1,2,3,4,65:69)]
-
-TN_sum_df <- PASO_dfsum_sorted[,c(1,2,3,4,70:74)]
 
 ```
 
@@ -91,8 +67,8 @@ NAPA_SOIL_df_sum <- NAPA_SOIL_df %>% group_by(Grower, Grower.Rating, Location, D
 
 
 
-# for loop for making a individual data set for each soil health factor
-## Make data frame alphabetical to make for loop easier (except fo the first 4 rows)
+
+## Make data frame alphabetical to make easier (except fo the first 4 rows)
 
 first_four_column_NAPA <- NAPA_SOIL_df_sum[,1:4 ]
 
@@ -106,34 +82,8 @@ NAPA_SOIL_df_sorted <- cbind(first_four_column_NAPA,rest_of_col_sorted_NAPA)
 
 # Define the column ranges for each data frame
 
-NAPA_BD_sum_df <- NAPA_SOIL_df_sorted[,c(1,2,3,4,5:9)]
-
-NAPA_clay_sum_df <- NAPA_SOIL_df_sorted[,c(1,2,3,4,10:14)]
-
-NAPA_EC_sum_df <- NAPA_SOIL_df_sorted[,c(1,2,3,4,15:19)]
-
-NAPA_MBC_sum_df <- NAPA_SOIL_df_sorted[,c(1,2,3,4,20:24)]
-
-NAPA_NH4_sum_df <- NAPA_SOIL_df_sorted[,c(1,2,3,4,25:29)]
-
-NAPA_NO3_sum_df <- NAPA_SOIL_df_sorted[,c(1,2,3,4,30:34)]
 
 NAPA_pH_sum_df <-NAPA_SOIL_df_sorted[,c(1,2,3,4,35:39)]
-
-NAPA_PMN_sum_df <- NAPA_SOIL_df_sorted[,c(1,2,3,4,40:44)]
-
-NAPA_POXC_sum_df <- NAPA_SOIL_df_sorted[,c(1,2,3,4,45:49)]
-
-NAPA_Sand_sum_df <- NAPA_SOIL_df_sorted[,c(1,2,3,4,50:54)]
-
-NAPA_silt_sum_df <- NAPA_SOIL_df_sorted[,c(1,2,3,4,55:59)]
-
-NAPA_Soil_Moisture_sum_df <- NAPA_SOIL_df_sorted[,c(1,2,3,4,60:64)]
-
-NAPA_TC_sum_df <- NAPA_SOIL_df_sorted[,c(1,2,3,4,65:69)]
-
-NAPA_TN_sum_df <- NAPA_SOIL_df_sorted[,c(1,2,3,4,70:74)]
-
 
 ```
 LODI
@@ -160,28 +110,12 @@ LODI_SOIL_df_sorted <- cbind(first_four_column_LODI,rest_of_col_sorted_LODI)
 
 ###
 
-LODI_BD_sum_df <- LODI_SOIL_df_sorted[,c(1,2,3,4,5:9)]
-
-LODI_EC_sum_df <- LODI_SOIL_df_sorted[,c(1,2,3,4,10:14)]
-
-LODI_MBC_sum_df <- LODI_SOIL_df_sorted[,c(1,2,3,4,15:19)]
-
-LODI_NH4_sum_df <- LODI_SOIL_df_sorted[,c(1,2,3,4,20:24)]
 
 LODI_pH_sum_df <- LODI_SOIL_df_sorted[,c(1,2,3,4,25:29)]
 
-LODI_PMN_sum_df <- LODI_SOIL_df_sorted[,c(1,2,3,4,30:34)]
 
-LODI_POXC_sum_df <-LODI_SOIL_df_sorted[,c(1,2,3,4,35:39)]
-
-LODI_Respiration_sum_df <- LODI_SOIL_df_sorted[,c(1,2,3,4,40:44)]
-
-LODI_SOIL_moisture_sum_df <- LODI_SOIL_df_sorted[,c(1,2,3,4,45:49)]
-
-
-### missing data so not as many sub data frames as other regoins
 ```
-This code will make a plot for comparing pH of every grower in the regions . A similar plot could be made for every soil health measurement to compare which soil has the most favorable soil health factors.
+This code will make a plot for comparing pH of every grower in the regions. A similar plot could be made for every soil health measurement to compare which soil has the most favorable soil health factors. This is not done in this project.
 ```{r}
 
 pH_Grower_plot_PASO<- ggplot(pH_sum_df,aes(y=pH_mean, x=Grower, fill=Depth)) + geom_boxplot(outlier.shape=NA) +theme_bw() + scale_fill_manual(values=cbPalette) + 
@@ -190,6 +124,7 @@ pH_Grower_plot_PASO<- ggplot(pH_sum_df,aes(y=pH_mean, x=Grower, fill=Depth)) + g
 
 pH_Grower_plot_PASO
 
+```
 
 ```{r}
 
@@ -209,12 +144,45 @@ pH_Grower_plot_LODI
 
 ```
 
-Now I would like avergae pH for the entire region. 
+Now I would like to average pH for the entire region. This will allow me to get a clearer picture of regional differences in pH.
 
 ```{r}
 
+lodi_pH_avg <- LODI_pH_sum_df[,c("Grower", "pH_mean")]
+lodi_pH_avg$Grower<- "LODI"
+
+paso_pH_avg <- pH_sum_df[,c("Grower", "pH_mean")]
+paso_pH_avg$Grower<- "PASO"
+
+napa_pH_avg <- NAPA_pH_sum_df[,c("Grower", "pH_mean")]
+napa_pH_avg$Grower<- "NAPA"
+
+pH_data <- rbind(lodi_pH_avg,paso_pH_avg,napa_pH_avg)
+
+colnames(pH_data) <- c("Region", "pH_mean")
+
+avg_pH <- aggregate(pH_mean ~ Region, data = pH_data, FUN = mean)
+
+### now create a bar graph using ggplot to to visualize d
+
+AVG_pH_plot <- ggplot(avg_pH, aes(x = Region, y = pH_mean)) +
+  geom_bar(stat = "identity", fill = "skyblue", width = 0.5) +
+  labs(title = "Average pH for Each Region", x = "Region", y = "Average pH")
+
+
+AVG_pH_plot
+```
+Now I will run a regression analysis to see if data is statistically significant. 
+```{r}
+
+pH_regression <- lm(pH_mean ~ Region, data = pH_data)
+
+summary(pH_regression)
 
 ```
+p-value equal < 2.2e-16. This p-value is well below alpha ans signifies statistical significance. This is not a surprise because of how much data was collected on each region.
+
+
 ##Raster Data
 First let read in data set of vineyard coordinates that I created. 
 ```{r}
@@ -222,7 +190,7 @@ First let read in data set of vineyard coordinates that I created.
 Vineyards <- read.csv("/Users/patrickfarrell/Documents/School/ESP 106/ESP106-FINAL-PatrickFarrell/Vineyard Coordinates.csv")
 
 ```
-For the second part of my project I am going to use raster data to see the the precipitation level in each region. Data dowloaded from worldclim.org
+For the second part of my project I am going to use raster data to see the the precipitation level in each region. Data downloaded from worldclim.org
 
 ```{r}
 library(raster)
@@ -254,7 +222,7 @@ points(Vineyards$Longitude, Vineyards$Latitude, pch = 1, col = "blue", cex= .5)
 
 ```
 
-We can see from this that Paso Robles and Napa have lower average temperature. 
+We can see from this that Paso Robles and Napa have lower average temperature than lodi. 
 
 Now Precipitation
 ```{r}
@@ -276,7 +244,7 @@ points(Vineyards$Longitude, Vineyards$Latitude, pch = 1, col = "blue", cex= .5)
 
 ```
 
-Hard to see differences so lets zoom in on each growing region. using shapefiels of wine growing avas from ttb.gov
+Hard to see differences so lets zoom in on each growing region. using shapefiels of wine growing avas from https://www.ttb.gov/wine/ava-map-explorer
 
 ```{r}
 napa_boundary<- shapefile("/Users/patrickfarrell/Documents/School/ESP 106/ESP106-FINAL-PatrickFarrell/napa_valley/napa_valley.shp")
@@ -313,4 +281,4 @@ points(Vineyards$Longitude, Vineyards$Latitude, pch = 1, col = "blue", cex= .5)
 ```
 
 
-There a re couple issues with these plots. The raster that I am using does not have enough cells to clearly differentiate precipitation within a region. However, we are able to se that Napa gets more precipitation on average than Paso Robles and Lodi. 
+There are couple issues with these plots. The raster that I am using does not have enough cells to clearly differentiate precipitation within a region. However, we are able to se that Napa gets more precipitation on average than Paso Robles and Lodi. 
