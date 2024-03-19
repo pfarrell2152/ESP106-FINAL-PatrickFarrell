@@ -1,26 +1,77 @@
 ---
-title: "Project ESP 106"
+title: "Is Soil pH Influenced by Precipitation"
 output: html_document
-date: "2024-03-06"
+date: "2024-03-18"
 author: Patrick Farrell
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+```{r setup, include=FALSE} 
+knitr::opts_chunk$set(echo = TRUE, root.dir = "outDir")
 ```
 
-## R Markdown
-Loading packages and data for analysis across vineyards
-```{r}
+
+```{r, include=FALSE}
 library(ggstats)
 library(tidyverse)
 library(dplyr)
 library(ggplot2)
 library(raster)
+library(viridis)
+```
 
 
-PASO_SOIL_df<- read.csv("/Users/patrickfarrell/Documents/School/ESP 106/ESP106-FINAL-PatrickFarrell/PasoRobles_SHdata.csv")
+```{r, include=FALSE}
 
+zipF <- file.path("DATA_Patrick_Farrell.zip")
+
+outDir <- "Unzipped_Data"
+
+unzip(zipF, exdir = outDir,junkpaths = TRUE)
+
+(files <- list.files(outDir, full.names = TRUE))
+
+setwd(outDir)
+
+knitr::opts_chunk$set(echo = TRUE, root.dir = "outDir")
+
+
+PASO_SOIL_df<- read.csv("PasoRobles_SHdata.csv")
+
+NAPA_SOIL_df<- read.csv("Napa_SHData.csv")
+
+LODI_SOIL_df<- read.csv("Lodi_AVF_SHdata.csv")
+
+Vineyards <- read.csv("Vineyard Coordinates.csv")
+
+monthly_temp <- list.files()[38:49]
+
+ca_boundary <- shapefile("ca_state_boundaries.shp")
+
+monthly_precip <- list.files()[26:37]
+
+napa_boundary<- shapefile("napa_valley.shp")
+
+lodi_boundary<- shapefile("lodi.shp")
+
+paso_boundary<- shapefile("paso_robles.shp")
+
+```
+
+
+## Introduction
+
+  This project is focused on discussing and visualizing pH differences between vineyard soils. Many factors can affect soil pH, including temperature, rainfall, soil composition, management practices, additives, and various other influences. I have been a part of a soil health and microbial ecology lab on campus for about a year now. During my time in the lab, we have collected lots of data including data on pH. For this project, I will use the data sets from the lab I have been working in. 
+  The first part of this project visualizes the pH differences between vineyards in a wine-growing region. First I summarized and subsetted the data for all three regions where data has been collected, Napa, Paso Robles, and Lodi. I then created a plot for each region that allowed me to see differences in pH between vineyard sites. This plot also compares the soil over two different sampling depths, A (0-10cm) and B (10-20cm). This is valuable information because when combined with interview information about management practices soil scientists can draw conclusions and provide recommendations to balance soil pH. 
+  Next, I further manipulated the data sets and combined them to create one data set that just had the mean pH of the three duplicates and the region. I then created a barplot that visualized the average pH of each region. After this, I included a regression analysis that compared the pH_mean with the three regions. 
+  For the last part of my project, I wanted to use raster data to visualize the differences in temperature and precipitation between regions. The temperature and precipitation of an area have a large impact on soil pH and are useful maps for further analysis. Not only can these be used to analyze soil pH but can be used to analyze other soil factors as well.
+
+
+## Main Question
+
+How to soil pH compare across sites in a region? How does soil pH compare across different regions? How does temperature and precipitation affect soil pH?
+
+### Napa
+```{r}
 #Make categorical data as factors
 PASO_SOIL_df<- PASO_SOIL_df %>% mutate_at(1:7, as.factor)
 
@@ -33,9 +84,9 @@ cbPalette <- c("#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00",
 # first row is NA so delete
 PASO_SOIL_dfsum <-PASO_SOIL_dfsum[-1,]
 
-# for loop for making a individual data set for each soil health factor
-## Make data frame alphabetical to make for loop easier (except fo the first 4 rows)
 
+# Make data frame alphabetical to make easier to find the pH values(except fo the first 4 rows)
+# Also the alphabetical format makes it easier to write a for loop if you are wanting to analyze all measurments in the data set. 
 first_four_column <- PASO_SOIL_dfsum[,1:4 ]
 
 rest_of_col <- PASO_SOIL_dfsum[,-(1:4) ]
@@ -44,20 +95,16 @@ rest_of_col_sorted <- rest_of_col[, order(names(rest_of_col))]
 
 PASO_dfsum_sorted <- cbind(first_four_column,rest_of_col_sorted) 
 
-## for loop for creating a data frame for each soil measurement
 
-# Define the column ranges for the pH data
+# Define the column ranges for the pH data and subset the data frame
 
 pH_sum_df <- PASO_dfsum_sorted[,c(1,2,3,4,35:39)]
 
 
 ```
 
-Now I will repeat these steps for Lodi and Napa data sets.
-
+### Napa
 ```{r}
-NAPA_SOIL_df<- read.csv("/Users/patrickfarrell/Documents/School/ESP 106/ESP106-FINAL-PatrickFarrell/Napa_SHData.csv")
-
 
 #Make categorical data as factors
 NAPA_SOIL_df<- NAPA_SOIL_df %>% mutate_at(1:7, as.factor)
@@ -78,18 +125,14 @@ rest_of_col_sorted_NAPA <- rest_of_col_NAPA[, order(names(rest_of_col_NAPA))]
 
 NAPA_SOIL_df_sorted <- cbind(first_four_column_NAPA,rest_of_col_sorted_NAPA) 
 
-## for loop for creating a data frame for each soil measurement
-
-# Define the column ranges for each data frame
 
 
 NAPA_pH_sum_df <-NAPA_SOIL_df_sorted[,c(1,2,3,4,35:39)]
 
 ```
-LODI
-```{r}
-LODI_SOIL_df<- read.csv("/Users/patrickfarrell/Documents/School/ESP 106/ESP106-FINAL-PatrickFarrell/Lodi_AVF_SHdata.csv")
 
+### Lodi
+```{r}
 
 #Make categorical data as factors
 LODI_SOIL_df<- LODI_SOIL_df %>% mutate_at(1:5, as.factor)
@@ -98,7 +141,7 @@ LODI_SOIL_df<- LODI_SOIL_df %>% mutate_at(1:5, as.factor)
 LODI_SOIL_df_sum <- LODI_SOIL_df %>% group_by(Grower, Grower.Rating, Location, Depth) %>% summarize_at(vars(EC:PMN), list(mean=mean, sd=sd, max=max, min=min, median=median),na.rm = TRUE)
 
 
-## Make data frame alphabetical to make for loop easier (except fo the first 4 rows)
+## Make data frame alphabetical to make easier (except fo the first 4 rows)
 
 first_four_column_LODI <- LODI_SOIL_df_sum[,1:4 ]
 
@@ -108,44 +151,46 @@ rest_of_col_sorted_LODI <- rest_of_col_LODI[, order(names(rest_of_col_LODI))]
 
 LODI_SOIL_df_sorted <- cbind(first_four_column_LODI,rest_of_col_sorted_LODI) 
 
-###
-
 
 LODI_pH_sum_df <- LODI_SOIL_df_sorted[,c(1,2,3,4,25:29)]
 
 
 ```
 This code will make a plot for comparing pH of every grower in the regions. A similar plot could be made for every soil health measurement to compare which soil has the most favorable soil health factors. This is not done in this project.
-```{r}
+```{r, echo=FALSE}
 
-pH_Grower_plot_PASO<- ggplot(pH_sum_df,aes(y=pH_mean, x=Grower, fill=Depth)) + geom_boxplot(outlier.shape=NA) +theme_bw() + scale_fill_manual(values=cbPalette) + 
+pH_Grower_plot_PASO<- ggplot(pH_sum_df,aes(y=pH_mean, x=Grower, fill=Depth)) + geom_boxplot(outlier.shape=NA) +theme_bw() + scale_fill_manual(values=cbPalette) + # specifics of theme and color palette were adapted from a different plot created by a co-worker in my lab
   theme(axis.text.x=element_text (hjust=0.5, angle = 45, size = 12), axis.title.x = element_text(size=10), axis.title.y = element_text(size=14), plot.title = element_text(size=18), strip.text.x = element_text(size = 12),strip.text.y = element_text(size = 12), axis.text.y.left =element_text( size = 12), legend.text=element_text(size=12), legend.title=element_text(size=12)) + 
-  ylab(expression(paste('pH' ))) 
-
+  ylab(expression(paste('pH' )))+ labs (title = "Paso Robles")
+                                        
 pH_Grower_plot_PASO
 
 ```
 
-```{r}
+```{r, echo=FALSE}
 
 pH_Grower_plot_NAPA<- ggplot(NAPA_pH_sum_df,aes(y=pH_mean, x=Grower, fill=Depth)) + geom_boxplot(outlier.shape=NA) +theme_bw() + scale_fill_manual(values=cbPalette) + 
   theme(axis.text.x=element_text (hjust=0.5, angle = 45, size = 12), axis.title.x = element_text(size=10), axis.title.y = element_text(size=14), plot.title = element_text(size=18), strip.text.x = element_text(size = 12),strip.text.y = element_text(size = 12), axis.text.y.left =element_text( size = 12), legend.text=element_text(size=12), legend.title=element_text(size=12)) + 
-  ylab(expression(paste('pH' ))) 
+  ylab(expression(paste('pH' ))) + labs (title = "Napa")
 
 pH_Grower_plot_NAPA
 ```
 
-```{r}
+```{r, echo=FALSE}
+
 pH_Grower_plot_LODI<- ggplot(LODI_pH_sum_df,aes(y=pH_mean, x=Grower, fill=Depth)) + geom_boxplot(outlier.shape=NA) +theme_bw() + scale_fill_manual(values=cbPalette) + 
   theme(axis.text.x=element_text (hjust=0.5, angle = 45, size = 12), axis.title.x = element_text(size=10), axis.title.y = element_text(size=14), plot.title = element_text(size=18), strip.text.x = element_text(size = 12),strip.text.y = element_text(size = 12), axis.text.y.left =element_text( size = 12), legend.text=element_text(size=12), legend.title=element_text(size=12)) + 
-  ylab(expression(paste('pH' ))) 
+  ylab(expression(paste('pH' ))) + labs( title = "Lodi")
 
 pH_Grower_plot_LODI
 
 ```
 
-Now I would like to average pH for the entire region. This will allow me to get a clearer picture of regional differences in pH.
+### Findings
 
+  First, there does not appear to be a trend between depths and pH. Lodi has the most differentiation between high and low pH values. This could indicate that management practices have a large impact on pH in Lodi. Some vineyards specifically in Napa have large differentiation in soil pH. This could indicate topographic differences within a vineyard, or different management practices within a vineyard. When combined with knowledge of vineyard management these plots can help draw conclusion on what practices are the best and how farmers can better there soils.
+  
+## Average pH Across Regions
 ```{r}
 
 lodi_pH_avg <- LODI_pH_sum_df[,c("Grower", "pH_mean")]
@@ -172,6 +217,11 @@ AVG_pH_plot <- ggplot(avg_pH, aes(x = Region, y = pH_mean)) +
 
 AVG_pH_plot
 ```
+
+### Findings
+Lodi has the lowest pH on average and Paso Robles has the highest average pH. 
+
+### Regression
 Now I will run a regression analysis to see if data is statistically significant. 
 ```{r}
 
@@ -180,27 +230,21 @@ pH_regression <- lm(pH_mean ~ Region, data = pH_data)
 summary(pH_regression)
 
 ```
+### Findings 
 p-value equal < 2.2e-16. This p-value is well below alpha ans signifies statistical significance. This is not a surprise because of how much data was collected on each region.
 
 
-##Raster Data
-First let read in data set of vineyard coordinates that I created. 
-```{r}
+## Temperature and Precipitation Influence
+For the second part of my project I am going to use raster data to see the the precipitation level in each region. Data downloaded from https://www.worldclim.org/data/worldclim21.html#
+California boundary shapefile from https://data.ca.gov/dataset/ca-geographic-boundaries 
 
-Vineyards <- read.csv("/Users/patrickfarrell/Documents/School/ESP 106/ESP106-FINAL-PatrickFarrell/Vineyard Coordinates.csv")
+```{r, echo=FALSE}
+setwd(outDir)
+### converting list to raster using lapply
+monthly_temp_rasters <- lapply(monthly_temp, raster)
 
-```
-For the second part of my project I am going to use raster data to see the the precipitation level in each region. Data downloaded from worldclim.org
-
-```{r}
-library(raster)
-
-
-monthly_files <- list.files("/Users/patrickfarrell/Documents/School/ESP 106/ESP106-FINAL-PatrickFarrell/wc2.1_10m_tavg", pattern = "\\.tif$", full.names = TRUE)
-monthly_rasters <- lapply(monthly_files, raster)
-
-
-stacked_raster <- stack(monthly_rasters)
+### staking monthly temleratures and taking mean to get yearly average temperature
+stacked_raster <- stack(monthly_temp_rasters)
 
 
 yearly_temp_raster <- calc(stacked_raster, mean)  
@@ -208,26 +252,29 @@ yearly_temp_raster <- calc(stacked_raster, mean)
 
 
 
-```{r}
+```{r, echo=FALSE}
+
 extent(yearly_temp_raster)
 
-ca_boundary <- shapefile("/Users/patrickfarrell/Documents/School/ESP 106/ESP106-FINAL-PatrickFarrell/ca_state_boundary/ca_state_boundaries.shp")
-
+### Cropping Raster to extent of California boundary shape file
 ytr<- crop(yearly_temp_raster,extent(ca_boundary))
 
-plot(ytr[[1]] , main="Mean Annual Temperature")
+### plotting raster and vineyard point cooridinates to see avergae temperature in the region
+
+plot(ytr[[1]] , main="Mean Annual Temperature Degrees C")
 plot(ca_boundary, add=TRUE, border="black",lwd=2)
-points(Vineyards$Longitude, Vineyards$Latitude, pch = 1, col = "blue", cex= .5)
+points(Vineyards$Longitude, Vineyards$Latitude, pch = 1,  col = rgb(0, 0, 1, alpha = 0.3), cex= .5)
 
 
 ```
 
-We can see from this that Paso Robles and Napa have lower average temperature than lodi. 
 
-Now Precipitation
-```{r}
-monthly_precip <- list.files("/Users/patrickfarrell/Documents/School/ESP 106/ESP106-FINAL-PatrickFarrell/wc2.1_10m_prec", pattern = "\\.tif$", full.names = TRUE)
+### Findings
+We can see from this that Paso Robles and Napa have lower average temperature than lodi. This could allow for increased weather rates in Lodi if there is enough precipitation in the region. 
 
+## Precipitation 
+```{r, echo =FALSE}
+setwd(outDir)
 monthly_precip_rasters <- lapply(monthly_precip, raster)
 
 
@@ -238,47 +285,82 @@ yearly_precip_raster <- calc(stacked_precip, mean)
 
 ypr<- crop(yearly_precip_raster,extent(ca_boundary))
 
-plot(ypr[[1]], main= "Mean Average Precipitation")
+plot(ypr[[1]], main= "Mean Average Precipitation mm")
 plot(ca_boundary, add=TRUE, border="black",lwd=2)
-points(Vineyards$Longitude, Vineyards$Latitude, pch = 1, col = "blue", cex= .5)
+points(Vineyards$Longitude, Vineyards$Latitude, pch = 1, col = rgb(0, 0, 1, alpha = 0.3), cex= .5)
 
 ```
 
-Hard to see differences so lets zoom in on each growing region. using shapefiels of wine growing avas from https://www.ttb.gov/wine/ava-map-explorer
+Hard to see differences so lets zoom in on each growing region. Using shapefiels of wine growing avas from https://www.ttb.gov/wine/ava-map-explorer
 
-```{r}
-napa_boundary<- shapefile("/Users/patrickfarrell/Documents/School/ESP 106/ESP106-FINAL-PatrickFarrell/napa_valley/napa_valley.shp")
+```{r, echo=FALSE}
+# Unique vineyard sites in NAPA
+unique_names_NAPA <- unique(Vineyards$Site[1:32])
 
+num_colors_NAPA <- length(unique_names_NAPA)
+#Setting colors
+colors_NAPA <-viridis::plasma(num_colors_NAPA)
+#cropping extent to napa boundary
 ypr_napa<- crop(yearly_precip_raster,extent(napa_boundary))
 
 plot(ypr_napa[[1]], main= "Napa Valley Vineyard and Mean Average Precipitation")
 plot(napa_boundary, add=TRUE, border="black",lwd=2)
-points(Vineyards$Longitude, Vineyards$Latitude, pch = 1, col = "blue", cex= .5)
-
-
+# Loop to add a color and a point for each unique vineyard in Napa
+for (i in 1:num_colors_NAPA) { 
+  vineyards_subset <- Vineyards[Vineyards$Site == unique_names_NAPA[i], ]
+  points(vineyards_subset$Longitude, vineyards_subset$Latitude, pch = 19, col = colors_NAPA[i], cex = 0.5)
+}
+# Adds legend to top right corner
+legend("topright", legend = unique_names_NAPA,col = colors_NAPA, pch = 19, cex = 0.3, title = "Vineyard Names" )
 ```
 
 
-```{r}
-lodi_boundary<- shapefile("/Users/patrickfarrell/Documents/School/ESP 106/ESP106-FINAL-PatrickFarrell/lodi/lodi.shp")
+```{r, echo=FALSE}
+unique_names_lodi <- unique(Vineyards$Site[45:57])
+num_colors_lodi <- length(unique_names_lodi)
+colors_lodi <-viridis::plasma(num_colors_lodi)
+ypr_lodi<- crop(yearly_precip_raster,extent(lodi_boundary))
 
 ypr_lodi<- crop(yearly_precip_raster,extent(lodi_boundary))
 
 plot(ypr_lodi[[1]], main= "Lodi Vineyards and Mean Average Precipitation")
 plot(lodi_boundary, add=TRUE, border="black",lwd=2)
-points(Vineyards$Longitude, Vineyards$Latitude, pch = 1, col = "blue", cex= .5)
+for (i in 1:num_colors_lodi) {
+  vineyards_subset <- Vineyards[Vineyards$Site == unique_names_lodi[i], ]
+  points(vineyards_subset$Longitude, vineyards_subset$Latitude, pch = 19, col = colors_lodi[i], cex = 0.5)
+}
+legend("topright", legend = unique_names_lodi, col = colors_lodi, pch = 19, cex = 0.8, title = "Vineyard Names")
 ```
 
-```{r}
-paso_boundary<- shapefile("/Users/patrickfarrell/Documents/School/ESP 106/ESP106-FINAL-PatrickFarrell/paso_robles/paso_robles.shp")
+```{r, echo=FALSE}
 
+unique_names <- unique(Vineyards$Site[33:44])
+num_colors <- length(unique_names)
+colors <-viridis::plasma(num_colors)
 ypr_paso<- crop(yearly_precip_raster,extent(paso_boundary))
 
 plot(ypr_paso[[1]], main= "Paso Robles Vineyards and Mean Average Precipitation")
 plot(paso_boundary, add=TRUE, border="black",lwd=2)
-points(Vineyards$Longitude, Vineyards$Latitude, pch = 1, col = "blue", cex= .5)
-
+for (i in 1:num_colors) {
+  vineyards_subset <- Vineyards[Vineyards$Site == unique_names[i], ]
+  points(vineyards_subset$Longitude, vineyards_subset$Latitude, pch = 19, col = colors[i], cex = 0.5)
+}
+legend("topright", legend = unique_names, col = colors, pch = 19, cex = 0.8, title = "Vineyard Names")
 ```
 
+### Findings
+There are couple issues with these plots. The raster that I am using does not have enough cells to clearly differentiate precipitation within a region. However, we are able to see that Napa gets more precipitation on average than Paso Robles and Lodi. 
 
-There are couple issues with these plots. The raster that I am using does not have enough cells to clearly differentiate precipitation within a region. However, we are able to se that Napa gets more precipitation on average than Paso Robles and Lodi. 
+## Disscussion and Conclusion
+  When considering Lodi had the lowest pH and highest average temperature it seems there is a correlation. Although Lodi gets less precipitation than Napa it still has lower pH. This could be due to better management practices in Lodi or could indicate water is not a limiting factor in either region. Paso Robles had the highest pH and was moderate in temperature and precipitation. This could indicate that there are soil differences or regional management practices that influence soil pH in Paso Robles.  Looking into the specific management practices of each region could be the best next step in the analysis of these soils. The next step of data analysis could be to obtain a better raster of precipitation and temperature to allow for better analysis between vineyards. Along with this, a topographic map analysis could be useful to further understand differences in soils. This analysis could be done with all the factors and could allow for more insights into the soil health of vineyards in these regions. 
+
+## References
+https://www.worldclim.org/data/worldclim21.html#
+
+https://data.ca.gov/dataset/ca-geographic-boundaries 
+
+https://www.ttb.gov/wine/ava-map-explorer
+
+Soil data frames are unpublished data from the lab I work in. I am unsure of how to cite them. 
+
+
